@@ -1,6 +1,6 @@
 {
   "name": "garig-cr-hebdo",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Compte rendu hebdomadaire d'exploitation Garig — enveloppe Android",
   "scripts": {
