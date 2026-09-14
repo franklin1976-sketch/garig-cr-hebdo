@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pastilles Garig CR Hebdo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F4F6EE; --surface:#FFFFFF; --surface-2:#EAEEE0;
+  --ink:#161B0D; --ink-2:#464F35; --muted:#727C5F;
+  --line:#DDE3CE; --line-strong:#B9C3A0;
+  --accent:#5F7F16; --accent-soft:#EAF1D8;
+  --dark-strip:#14180E; --light-strip:#FFFFFF;
+  --f:"Outfit","Helvetica Neue",Arial,sans-serif;
+  --m:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#101409; --surface:#181E10; --surface-2:#212819;
+    --ink:#EDF2E2; --ink-2:#B6C0A2; --muted:#87917355;
+    --muted:#879173; --line:#28311C; --line-strong:#3F4A2C;
+    --accent:#A6CC5B; --accent-soft:#242E14;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101409; --surface:#181E10; --surface-2:#212819;
+  --ink:#EDF2E2; --ink-2:#B6C0A2; --muted:#879173;
+  --line:#28311C; --line-strong:#3F4A2C;
+  --accent:#A6CC5B; --accent-soft:#242E14;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:920px;margin:0 auto;padding-inline:20px;padding-block:44px 72px}
+header{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:8px}
+.eyebrow{font-family:var(--m);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{font-size:clamp(28px,5vw,40px);font-weight:700;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+header p{margin:0;max-width:62ch;color:var(--ink-2);font-weight:300;font-size:17px}
+.row{display:grid;grid-template-columns:200px 1fr;gap:28px;align-items:start;padding:34px 0;border-bottom:1px solid var(--line)}
+.big{width:200px;height:200px;display:block;border-radius:6px}
+.meta h2{font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em}
+.num{font-family:var(--m);font-size:12px;color:var(--accent);font-weight:500;display:block;margin-bottom:3px}
+.meta p{margin:8px 0 0;color:var(--ink-2);font-weight:300;max-width:52ch}
+.file{font-family:var(--m);font-size:12.5px;color:var(--muted);margin-top:10px;display:block;word-break:break-all}
+.strips{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.strip{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:8px;border:1px solid var(--line)}
+.strip.l{background:var(--light-strip)}
+.strip.d{background:var(--dark-strip);border-color:transparent}
+.strip img{display:block}
+.strip .cap{font-family:var(--m);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.strip.l .cap{color:#6B7560}
+.strip.d .cap{color:#8D9878}
+footer{padding-top:34px}
+footer h3{font-size:16px;font-weight:600;margin:0 0 8px}
+footer p{margin:0 0 14px;color:var(--ink-2);font-weight:300;max-width:62ch}
+pre{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:13px 15px;overflow-x:auto;font-family:var(--m);font-size:13px;margin:0 0 18px}
+.note{color:var(--muted);font-size:14px;font-weight:300;max-width:62ch}
+@media (max-width:620px){
+  .row{grid-template-columns:1fr;gap:18px}
+  .big{width:160px;height:160px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<p class="eyebrow">Garig · icône d'application</p>
+<h1>Cinq pastilles pour le compte rendu hebdo</h1>
+<p>Le lettrage « Garig » est repris pixel pour pixel du logo, pas recomposé dans une police approchante. La ligne « Cuisine de Chef… » a été retirée et remplacée par « Compte rendu Hebdo ». Chaque pastille est montrée en grand, puis aux tailles réelles où elle sera vue : écran d'accueil, barre de favoris, onglet.</p>
+</header>
+<div class="row">
+<img class="big" src="../icons/pastille-1-olive.png" alt="Pastille 1 — Disque vert olive">
+<div class="meta">
+<span class="num">Pastille 1</span>
+<h2>Disque vert olive</h2>
+<p>Le logo fourni, tel quel, avec la ligne remplacée. Le choix par défaut : c'est la pastille que tout le monde reconnaîtra comme Garig.</p>
+<code class="file">icons/pastille-1-olive.png</code>
+<div class="strips">
+<div class="strip l">
+<img src="../icons/pastille-1-olive.png" width="96" height="96" alt="">
+<img src="../icons/pastille-1-olive.png" width="48" height="48" alt="">
+<img src="../icons/pastille-1-olive.png" width="32" height="32" alt="">
+<span class="cap">fond clair</span>
+</div>
+<div class="strip d">
+<img src="../icons/pastille-1-olive.png" width="96" height="96" alt="">
+<img src="../icons/pastille-1-olive.png" width="48" height="48" alt="">
+<img src="../icons/pastille-1-olive.png" width="32" height="32" alt="">
+<span class="cap">fond sombre</span>
+</div>
+</div></div></div>
+<div class="row">
+<img class="big" src="../icons/pastille-2-vert-vif.png" alt="Pastille 2 — Disque vert vif">
+<div class="meta">
+<span class="num">Pastille 2</span>
+<h2>Disque vert vif</h2>
+<p>Le vert lumineux de la version doodle. Ressort davantage sur un fond d'écran sombre, un peu moins sur fond clair.</p>
+<code class="file">icons/pastille-2-vert-vif.png</code>
+<div class="strips">
+<div class="strip l">
+<img src="../icons/pastille-2-vert-vif.png" width="96" height="96" alt="">
+<img src="../icons/pastille-2-vert-vif.png" width="48" height="48" alt="">
+<img src="../icons/pastille-2-vert-vif.png" width="32" height="32" alt="">
+<span class="cap">fond clair</span>
+</div>
+<div class="strip d">
+<img src="../icons/pastille-2-vert-vif.png" width="96" height="96" alt="">
+<img src="../icons/pastille-2-vert-vif.png" width="48" height="48" alt="">
+<img src="../icons/pastille-2-vert-vif.png" width="32" height="32" alt="">
+<span class="cap">fond sombre</span>
+</div>
+</div></div></div>
+<div class="row">
+<img class="big" src="../icons/pastille-3-noir-vert.png" alt="Pastille 3 — Disque noir et vert">
+<div class="meta">
+<span class="num">Pastille 3</span>
+<h2>Disque noir et vert</h2>
+<p>Lettrage et sous-titre verts sur noir. Le contraste le plus fort des cinq : reste lisible même réduite à 32 px.</p>
+<code class="file">icons/pastille-3-noir-vert.png</code>
+<div class="strips">
+<div class="strip l">
+<img src="../icons/pastille-3-noir-vert.png" width="96" height="96" alt="">
+<img src="../icons/pastille-3-noir-vert.png" width="48" height="48" alt="">
+<img src="../icons/pastille-3-noir-vert.png" width="32" height="32" alt="">
+<span class="cap">fond clair</span>
+</div>
+<div class="strip d">
+<img src="../icons/pastille-3-noir-vert.png" width="96" height="96" alt="">
+<img src="../icons/pastille-3-noir-vert.png" width="48" height="48" alt="">
+<img src="../icons/pastille-3-noir-vert.png" width="32" height="32" alt="">
+<span class="cap">fond sombre</span>
+</div>
+</div></div></div>
+<div class="row">
+<img class="big" src="../icons/pastille-4-blanche.png" alt="Pastille 4 — Disque blanc cerclé">
+<div class="meta">
+<span class="num">Pastille 4</span>
+<h2>Disque blanc cerclé</h2>
+<p>Version claire, cernée de vert. À privilégier si l'icône côtoie beaucoup d'applications colorées.</p>
+<code class="file">icons/pastille-4-blanche.png</code>
+<div class="strips">
+<div class="strip l">
+<img src="../icons/pastille-4-blanche.png" width="96" height="96" alt="">
+<img src="../icons/pastille-4-blanche.png" width="48" height="48" alt="">
+<img src="../icons/pastille-4-blanche.png" width="32" height="32" alt="">
+<span class="cap">fond clair</span>
+</div>
+<div class="strip d">
+<img src="../icons/pastille-4-blanche.png" width="96" height="96" alt="">
+<img src="../icons/pastille-4-blanche.png" width="48" height="48" alt="">
+<img src="../icons/pastille-4-blanche.png" width="32" height="32" alt="">
+<span class="cap">fond sombre</span>
+</div>
+</div></div></div>
+<div class="row">
+<img class="big" src="../icons/pastille-5-carre-noir-vert.png" alt="Pastille 5 — Carré arrondi noir et vert">
+<div class="meta">
+<span class="num">Pastille 5</span>
+<h2>Carré arrondi noir et vert</h2>
+<p>Format d'icône d'application mobile : fond noir, lettrage vert, sous-titre sur un bandeau vert. C'est la pastille retenue, celle qui est déclinée en jeu d'icônes.</p>
+<code class="file">icons/pastille-5-carre-noir-vert.png</code>
+<div class="strips">
+<div class="strip l">
+<img src="../icons/pastille-5-carre-noir-vert.png" width="96" height="96" alt="">
+<img src="../icons/pastille-5-carre-noir-vert.png" width="48" height="48" alt="">
+<img src="../icons/pastille-5-carre-noir-vert.png" width="32" height="32" alt="">
+<span class="cap">fond clair</span>
+</div>
+<div class="strip d">
+<img src="../icons/pastille-5-carre-noir-vert.png" width="96" height="96" alt="">
+<img src="../icons/pastille-5-carre-noir-vert.png" width="48" height="48" alt="">
+<img src="../icons/pastille-5-carre-noir-vert.png" width="32" height="32" alt="">
+<span class="cap">fond sombre</span>
+</div>
+</div></div></div>
+<footer>
+<h3>Changer la pastille active</h3>
+<p>Le jeu d'icônes du site (onglet, écran d'accueil, PWA) est décliné depuis la pastille 5. Pour basculer sur une autre, depuis la racine du dépôt :</p>
+<pre>pip install pillow
+python3 brand/make-pastilles.py --choix 1</pre>
+<p class="note">Le sous-titre est composé en Outfit, la police libre la plus proche du tracé du logo. Si vous avez la police exacte de la charte, ajoutez <code>--font /chemin/vers/VotrePolice.ttf</code> et l'accord devient parfait. Le favicon 32&nbsp;px ne porte que le lettrage : « Compte rendu Hebdo » y serait illisible.</p>
+</footer></div>
+</body>
+</html>
