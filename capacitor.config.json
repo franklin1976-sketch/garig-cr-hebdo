@@ -1,0 +1,11 @@
+{
+  "appId": "fr.garig.crhebdo",
+  "appName": "CR Hebdo",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
