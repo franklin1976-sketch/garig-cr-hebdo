@@ -1,0 +1,94 @@
+name: Créer la clé de signature
+
+# À lancer UNE SEULE FOIS, avant le premier APK.
+# Produit le fichier garig.keystore et sa version texte (base64) à coller dans les secrets.
+# Prérequis : les secrets ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS et
+# ANDROID_KEY_PASSWORD doivent déjà exister dans le dépôt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      nom:
+        description: "Nom (CN) inscrit dans la clé"
+        required: true
+        default: "Garig"
+      organisation:
+        description: "Organisation (O)"
+        required: true
+        default: "Garig"
+      ville:
+        description: "Ville (L)"
+        required: true
+        default: "Paris"
+      pays:
+        description: "Pays, deux lettres (C)"
+        required: true
+        default: "FR"
+
+jobs:
+  cle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Vérifier les secrets
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          manque=0
+          [ -z "$STORE_PASSWORD" ] && echo "Secret ANDROID_KEYSTORE_PASSWORD absent" && manque=1
+          [ -z "$KEY_ALIAS" ]      && echo "Secret ANDROID_KEY_ALIAS absent"      && manque=1
+          [ -z "$KEY_PASSWORD" ]   && echo "Secret ANDROID_KEY_PASSWORD absent"   && manque=1
+          if [ "$manque" = "1" ]; then
+            echo "Créez d'abord les trois secrets — voir APK.md, étape 2." >&2
+            exit 1
+          fi
+
+      - name: Générer la clé
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mkdir -p cle
+          keytool -genkeypair -v \
+            -keystore cle/garig.keystore \
+            -storetype PKCS12 \
+            -alias "$KEY_ALIAS" \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$STORE_PASSWORD" \
+            -keypass "$KEY_PASSWORD" \
+            -dname "CN=${{ inputs.nom }}, O=${{ inputs.organisation }}, L=${{ inputs.ville }}, C=${{ inputs.pays }}"
+
+      - name: Version texte de la clé
+        run: |
+          base64 -w 0 cle/garig.keystore > cle/garig.keystore.base64.txt
+          echo "Taille du fichier texte : $(wc -c < cle/garig.keystore.base64.txt) caractères"
+
+      - name: Empreinte SHA-256
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          keytool -list -v -keystore cle/garig.keystore \
+            -alias "$KEY_ALIAS" -storepass "$STORE_PASSWORD" \
+            | grep -i "SHA256:" | tee cle/empreinte-sha256.txt
+
+      - name: Mettre la clé à disposition
+        uses: actions/upload-artifact@v4
+        with:
+          name: cle-de-signature
+          path: cle/
+          retention-days: 1
+
+      - name: Rappel
+        run: |
+          echo "::warning::Téléchargez l'artifact « cle-de-signature » MAINTENANT : il est supprimé dans 24 h."
+          echo "::warning::Conservez garig.keystore hors du dépôt. Sans lui, plus aucune mise à jour de l'application n'est possible."
