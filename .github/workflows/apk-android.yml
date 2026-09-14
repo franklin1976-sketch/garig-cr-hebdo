@@ -35,8 +35,12 @@ jobs:
       - name: Préparer le dossier web
         run: |
           mkdir -p www
-          cp index.html manifest.webmanifest sw.js www/
-          cp -r icons www/
+          cp index.html www/
+          if [ -f manifest.webmanifest ]; then cp manifest.webmanifest www/; else echo "::warning::manifest.webmanifest absent du dépôt"; fi
+          if [ -f sw.js ]; then cp sw.js www/; else echo "::warning::sw.js absent du dépôt"; fi
+          if [ -d icons ]; then cp -r icons www/; else echo "::warning::dossier icons absent du dépôt"; fi
+          echo "Contenu de www :"
+          ls -la www
 
       - name: Installer les dépendances
         run: npm install
@@ -45,7 +49,12 @@ jobs:
         run: npx cap add android
 
       - name: Icônes et écran de démarrage
-        run: npx capacitor-assets generate --android --assetPath assets
+        run: |
+          if [ -d assets ]; then
+            npx capacitor-assets generate --android --assetPath assets
+          else
+            echo "::warning::Dossier assets absent : l'APK utilisera l'icône Capacitor par défaut."
+          fi
 
       - name: Synchroniser
         run: npx cap sync android
