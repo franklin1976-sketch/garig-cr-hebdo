@@ -167,6 +167,7 @@ h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
 .secedit input.hnt{font-size:12.5px;font-style:italic}
 .secedit .ops{display:flex;flex-direction:column;gap:4px}
 .note{font-size:12.5px;color:var(--muted);line-height:1.45}
+#dlgShareHint{margin:14px 0 0;padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0}
 .note code{font-family:var(--f-mono);font-size:11.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 
 /* ---------- carnet d'adresses / groupes ---------- */
@@ -416,12 +417,19 @@ dialog::backdrop{background:rgba(9,18,24,.55)}
         </label>
       </div>
     </div>
+    <p class="note" id="dlgShareHint" hidden>
+      <b>À savoir avant d'envoyer.</b> La feuille de partage d'Android ne sait pas remplir le
+      champ « À » de votre messagerie, ni insérer une image dans le corps du message : c'est une
+      limite du système, qu'aucun réglage ne contourne. L'application fait donc au mieux —
+      <b>l'image du compte-rendu et le PDF partent tous les deux en pièces jointes</b>, et les
+      <b>adresses sont copiées</b> : appuyez longuement sur le champ « À », puis <b>Coller</b>.
+    </p>
     <div class="dlgfoot">
       <span class="progress" id="dlgCount">Aucun destinataire</span>
       <span class="spacer"></span>
       <button class="btn ghost" type="button" id="dlgCancel">Annuler</button>
       <button class="btn" type="button" id="dlgSend">Préparer l'e-mail</button>
-      <button class="btn primary" type="button" id="dlgShare" hidden>Envoyer avec le PDF joint</button>
+      <button class="btn primary" type="button" id="dlgShare" hidden>Envoyer avec les pièces jointes</button>
     </div>
     <div id="dlgDone" hidden>
       <h3>Votre message est prêt</h3>
@@ -429,6 +437,7 @@ dialog::backdrop{background:rgba(9,18,24,.55)}
       <ol class="donesteps" id="dlgSteps"></ol>
       <div class="dlgfoot">
         <span class="spacer"></span>
+        <button class="btn" type="button" id="dlgRecopyTo" hidden>Recopier les destinataires</button>
         <button class="btn" type="button" id="dlgRecopy">Recopier le compte-rendu</button>
         <button class="btn primary" type="button" id="dlgClose">Fermer</button>
       </div>
@@ -1207,6 +1216,23 @@ $("btnCopy").addEventListener("click", function(){
     function(){ fallbackCopy(reportText()); }
   );
 });
+/* Copie sans message : sert à mettre la liste des destinataires dans le presse-papiers.
+   Doit être appelée pendant le geste de l'utilisateur, sinon la WebView refuse. */
+function copierTexteSilencieux(txt){
+  var ok = false;
+  var ta = document.createElement("textarea");
+  ta.value = txt; ta.style.position = "fixed"; ta.style.top = "0"; ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+  if (!ok) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt); ok = true; }
+    } catch (e2) {}
+  }
+  return ok;
+}
 function fallbackCopy(txt){
   var ta = document.createElement("textarea");
   ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
@@ -1681,15 +1707,36 @@ function cheminRangement(name){
    du dossier Documents public est souvent refusé, d'où les « impossible de copier ».
    On écrit donc deux fois : la copie durable dans Documents, la copie à partager dans Cache. */
 function partagerFichier(blob, name, titre, texte){
+  return partagerFichiers([{ blob: blob, name: name }], titre || name, texte);
+}
+
+/* Plusieurs pièces jointes d'un coup : l'image du compte-rendu ET le PDF.
+   Le greffon Share accepte « files » depuis la version 5 ; si la version installée
+   ne le connaît pas, on retombe sur le dernier fichier de la liste, seul. */
+function partagerFichiers(liste, titre, texte){
   var FS = greffon("Filesystem"), SH = greffon("Share");
   if (!FS || !SH) return Promise.reject(new Error("greffons de partage absents"));
-  return blobEnBase64(blob).then(function(b64){
-    return FS.writeFile({ path: "partage/" + name, data: b64, directory: "CACHE", recursive: true });
-  }).then(function(r){
-    var opts = { title: titre || name, url: r.uri,
-                 dialogTitle: "Enregistrer dans Fichiers, ou envoyer" };
-    if (texte) opts.text = texte;
-    return SH.share(opts);
+  var uris = [];
+  var chaine = liste.reduce(function(prec, item){
+    return prec.then(function(){
+      return blobEnBase64(item.blob).then(function(b64){
+        return FS.writeFile({ path: "partage/" + item.name, data: b64, directory: "CACHE", recursive: true });
+      }).then(function(r){ uris.push(r.uri); });
+    });
+  }, Promise.resolve());
+  return chaine.then(function(){
+    var base = { title: titre || "", dialogTitle: "Enregistrer dans Fichiers, ou envoyer" };
+    if (texte) base.text = texte;
+    var opts = {};
+    for (var k in base) opts[k] = base[k];
+    if (uris.length > 1) opts.files = uris; else opts.url = uris[0];
+    return SH.share(opts).then(function(){ return uris.length; }, function(e){
+      if (e && e.name === "AbortError") throw e;
+      if (uris.length < 2) throw e;
+      /* greffon plus ancien : on repart avec le PDF seul */
+      base.url = uris[uris.length - 1];
+      return SH.share(base).then(function(){ return 1; });
+    });
   });
 }
 
@@ -1855,6 +1902,7 @@ function showSendStep(which){
   $("dlgSub").hidden = !pick1;
   $("dlgBody").hidden = !pick1;
   $("dlgFormat").hidden = !pick1;
+  $("dlgShareHint").hidden = !pick1 || $("dlgShare").hidden;
   $("dlgCount").parentNode.hidden = !pick1;
   $("dlgDone").hidden = pick1;
 }
@@ -1910,7 +1958,10 @@ $("btnMail").addEventListener("click", function(){
   pick = { groups:(lp.groups || []).slice(), contacts:(lp.contacts || []).slice() };
   buildSendDialog();
   showSendStep("pick");
-  $("dlgShare").hidden = !canShareFiles();
+  var partageDispo = canShareFiles();
+  $("dlgShare").hidden = !partageDispo;
+  $("dlgShareHint").hidden = !partageDispo;
+  $("dlgRecopyTo").hidden = true;
   var d = $("sendDlg");
   if(d.showModal) d.showModal(); else d.setAttribute("open","");
 });
@@ -1928,27 +1979,78 @@ function rememberPick(){
   save();
 }
 
-/* Partage natif : le PDF part en pièce jointe via la feuille de partage du téléphone. */
+/* Partage natif : l'image du compte-rendu ET le PDF partent en pièces jointes.
+   Le champ « À » ne peut pas être pré-rempli par la feuille de partage d'Android — aucune
+   application ne le peut — donc on copie les adresses pour qu'un simple « Coller » suffise. */
+var dernierEnvoiTo = [];
+
 $("dlgShare").addEventListener("click", function(){
   var to = pickedEmails();
   if (!to.length) return;
   rememberPick();
+  dernierEnvoiTo = to.slice();
+  /* Pendant le geste : au-delà, la WebView refuse l'accès au presse-papiers. */
+  var listeCopiee = copierTexteSilencieux(to.join(", "));
+
   var btn = $("dlgShare"); btn.disabled = true; btn.textContent = "Préparation…";
-  var texte = "Bonjour,\n\nVeuillez trouver ci-joint le compte-rendu hebdomadaire d'exploitation " +
-              "de la semaine " + cur.week + " / " + cur.year + ".\n\nDestinataires : " + to.join(", ") +
+  var texte = "Destinataires : " + to.join(", ") +
+              "\n\nBonjour,\n\nVeuillez trouver ci-joint le compte-rendu hebdomadaire d'exploitation " +
+              "de la semaine " + cur.week + " / " + cur.year + ", en image et au format PDF." +
               "\n\nCordialement,\n" + ($("fAuthor").value.trim() || "");
-  buildPdfBlob().then(function(blob){
-    if (estNatif()) return partagerFichier(blob, pdfName(), mailSubject(), texte);
-    var file = new File([blob], pdfName(), {type:"application/pdf"});
-    return navigator.share({ files: [file], title: mailSubject(), text: texte });
-  }).then(function(){
-    $("sendDlg").close();
-    toast("Compte-rendu partagé, PDF joint");
+
+  Promise.all([
+    buildPdfBlob(),
+    buildPngDataUrl().then(function(png){ return dataUrlToBlob(png.url); })
+  ]).then(function(r){
+    var pdf = r[0], png = r[1];
+    if (estNatif()) {
+      return partagerFichiers(
+        [{ blob: png, name: pngName() }, { blob: pdf, name: pdfName() }],
+        mailSubject(), texte);
+    }
+    var fichiers = [ new File([png], pngName(), {type:"image/png"}),
+                     new File([pdf], pdfName(), {type:"application/pdf"}) ];
+    try { if (navigator.canShare && !navigator.canShare({ files: fichiers })) fichiers = [fichiers[1]]; }
+    catch (e) { fichiers = [fichiers[1]]; }
+    var n = fichiers.length;
+    return navigator.share({ files: fichiers, title: mailSubject(), text: texte })
+      .then(function(){ return n; });
+  }).then(function(nbJoints){
+    var steps = $("dlgSteps");
+    steps.innerHTML = "";
+    function li(html){ var e = document.createElement("li"); e.innerHTML = html; steps.appendChild(e); }
+
+    $("dlgDoneSub").textContent = "Semaine " + cur.week + " / " + cur.year + " · " +
+      to.length + (to.length > 1 ? " destinataires" : " destinataire");
+
+    li(nbJoints > 1
+       ? "Deux pièces jointes sont dans le message : <b>l'image du compte-rendu</b> (" +
+         escHtml(pngName()) + ") et <b>le PDF</b> (" + escHtml(pdfName()) + ")."
+       : "Le <b>PDF</b> est joint au message (" + escHtml(pdfName()) + "). Votre messagerie " +
+         "n'a accepté qu'une seule pièce jointe : l'image reste disponible par <b>Voir le PDF</b>.");
+    li(listeCopiee
+       ? "Les destinataires sont <b>dans le presse-papiers</b> : appuyez longuement sur le champ " +
+         "« À » de votre messagerie, puis <b>Coller</b>.<br>" + escHtml(to.join(", "))
+       : "Recopiez les destinataires dans le champ « À » : <b>" + escHtml(to.join(", ")) + "</b>" +
+         " — ou utilisez le bouton <b>Recopier les destinataires</b> ci-dessous.");
+    li("Le champ « À » et l'image dans le corps du message ne peuvent pas être remplis " +
+       "automatiquement depuis un partage Android : c'est une limite du système. " +
+       "Pour un corps de message mis en forme, passez par <b>Préparer l'e-mail</b> sur ordinateur.");
+
+    $("dlgRecopyTo").hidden = false;
+    showSendStep("done");
   }).catch(function(err){
     if (!err || err.name !== "AbortError") toast("Partage impossible — utilisez « Préparer l'e-mail »");
   }).then(function(){
-    btn.disabled = false; btn.textContent = "Envoyer avec le PDF joint";
+    btn.disabled = false; btn.textContent = "Envoyer avec les pièces jointes";
   });
+});
+
+$("dlgRecopyTo").addEventListener("click", function(){
+  if (!dernierEnvoiTo.length) return;
+  toast(copierTexteSilencieux(dernierEnvoiTo.join(", "))
+        ? "Destinataires copiés — collez-les dans le champ « À »"
+        : "Copie impossible : " + dernierEnvoiTo.join(", "));
 });
 
 /* Voie universelle : PDF téléchargé + corps mis en forme dans le presse-papiers + messagerie ouverte. */
