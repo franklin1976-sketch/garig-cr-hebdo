@@ -66,6 +66,22 @@ jobs:
       - name: Créer le projet Android
         run: npx cap add android
 
+      # Module d'envoi e-mail : destinataires ET pièces jointes dans la même intention.
+      # S'il est absent, l'application retombe toute seule sur la feuille de partage.
+      - name: Ajouter le module d'envoi e-mail
+        run: |
+          if [ ! -d android-natif ]; then
+            echo "::warning::Dossier android-natif absent : l'application utilisera la feuille de partage ordinaire."
+            exit 0
+          fi
+          pkg="android/app/src/main/java/fr/garig/crhebdo"
+          mkdir -p "$pkg" android/app/src/main/res/xml
+          cp android-natif/EnvoiEmailPlugin.java "$pkg/"
+          cp android-natif/MainActivity.java "$pkg/"
+          cp android-natif/file_paths.xml android/app/src/main/res/xml/file_paths.xml
+          echo "Contenu de $pkg :"
+          ls -la "$pkg"
+
       - name: Icônes et écran de démarrage
         run: |
           if [ -d assets ]; then
